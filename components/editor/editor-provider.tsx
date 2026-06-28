@@ -263,7 +263,30 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // background
   const onImage = (f: File | null) => {
     setImageFile(f)
-    set("bgImage", f ? URL.createObjectURL(f) : "")
+    if (!f) {
+      set("bgImage", "")
+      return
+    }
+    // Show the local blob immediately for a snappy preview…
+    set("bgImage", URL.createObjectURL(f))
+    // …then durably offload to S3 so the image survives a save/reload. A blob:
+    // URL is dead after reload; the returned S3/CloudFront URL is not. If object
+    // storage isn't configured (501) we simply keep the blob — no regression.
+    void (async () => {
+      try {
+        const dataUrl = await fileToDataURL(f)
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ dataUrl, ext: f.name.split(".").pop() }),
+        })
+        if (!res.ok) return // storage off or rejected — keep the blob preview
+        const { url } = await res.json()
+        if (url) set("bgImage", url)
+      } catch {
+        /* network/storage hiccup — the blob preview still works */
+      }
+    })()
   }
 
   // Timeline scene management
@@ -390,7 +413,10 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const res = await fetch(`/api/list?userId=${encodeURIComponent(userId)}`)
       if (!res.ok) throw new Error(await res.text())
-      setCloudScenes(await res.json())
+      // The list endpoint returns a page { items, nextCursor }. Stay tolerant of
+      // the older bare-array shape so a stale client never breaks.
+      const data = await res.json()
+      setCloudScenes(Array.isArray(data) ? data : (data.items ?? []))
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Failed to load cloud library"
       console.error("[v0] cloud list error", e)

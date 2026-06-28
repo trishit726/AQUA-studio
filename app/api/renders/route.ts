@@ -16,9 +16,11 @@ export async function GET(req: Request) {
 
   try {
     // Renders share the user's partition with their scenes and are isolated by
-    // the "RENDER#" sort-key prefix — a single Query, newest first, no index.
-    const renders = await listRenders(userId)
-    return NextResponse.json(renders)
+    // the "RENDER#" sort-key prefix — a single paginated Query, newest first.
+    const limit = Number(searchParams.get("limit")) || undefined
+    const cursor = searchParams.get("cursor")
+    const page = await listRenders(userId, { limit, cursor })
+    return NextResponse.json(page)
   } catch (error: any) {
     console.error("[v0] Error listing renders from DynamoDB:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })

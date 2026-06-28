@@ -52,6 +52,14 @@ resource "aws_dynamodb_table" "pattern_studio" {
     enabled = var.point_in_time_recovery
   }
 
+  # Auto-expire render-history events: they carry a `ttl` epoch-seconds attribute
+  # (set in app/lib/db.ts → recordRender), scenes do not. Keeps the time-series
+  # side of each user's partition bounded at no extra cost.
+  ttl {
+    attribute_name = "ttl"
+    enabled        = true
+  }
+
   tags = merge(local.tags, { Component = "database" })
 
   # The table holds user data — guard against an accidental `terraform destroy`.

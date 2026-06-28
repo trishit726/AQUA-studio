@@ -49,7 +49,8 @@ Vercel + AWS Databases stack.
 | API (Vercel, Node runtime) | `/api/*` — AI generation, scene CRUD, render logging; all secrets server-side |
 | Auth | Clerk → `userId` becomes the DynamoDB partition key |
 | **Primary database** | **Amazon DynamoDB** (single-table, sparse GSI, on-demand) |
-| Cache | DAX (prod) / in-process TTL cache (always-on) |
+| Cache | In-process read-through TTL cache (live, `app/lib/cache.ts`); DAX provisioned in Terraform as the production path |
+| Large assets | Uploaded background images offloaded to S3 (`/api/upload`), only the URL stored in the DynamoDB item |
 | Object storage + CDN | S3 (rendered media) behind CloudFront |
 | Render | Remotion + ffmpeg on long-lived compute (can't run on Vercel) |
 | Observability | CloudWatch EMF metrics, logs, dashboard, alarms |

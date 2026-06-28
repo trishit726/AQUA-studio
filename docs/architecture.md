@@ -48,7 +48,7 @@ flowchart TB
 | **Next.js 16 App + API** | App + application logic | Editor UI + `/api/*` routes (Node runtime). All AI keys and AWS credentials stay server-side |
 | **Clerk Auth** | Auth service | Sign-in + session/JWT; `userId` becomes the DynamoDB partition key, so ownership is enforced by the key |
 | **DynamoDB** | Primary database | Single-table design: each user's scenes **and** render history live in one item collection; sparse GSI1 for recency. Single-partition Queries, never a Scan |
-| **DAX** | In-memory DB cache | Read-through cache for the hot `listScenes` path — microsecond cached reads (app falls back to an in-process TTL cache when DAX is off) |
+| **DAX** | In-memory DB cache | The production read-cache path, **provisioned in Terraform but not yet wired into the app client**. Today the live cache is an in-process TTL cache (`app/lib/cache.ts`) on the `listScenes` hot path; pointing the client at DAX is the documented next step |
 | **S3** | Object storage | Stores every rendered MP4/WebM/GIF under `renders/<id>/`; private, encrypted, 7-day lifecycle |
 | **CloudFront** | CDN | Delivers rendered media globally via Origin Access Control (bucket stays private) |
 | **SQS render queue** | Message queue | Async render fan-out to a worker pool; DLQ after 3 failed attempts |

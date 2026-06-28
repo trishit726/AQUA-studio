@@ -133,6 +133,44 @@ const toScene = (item: Record<string, any>): Scene => ({
 })
 
 // ---------------------------------------------------------------------------
+// Pagination. DynamoDB caps every Query at 1 MB, so list endpoints MUST page
+// rather than assume one round-trip returns everything. We expose an opaque,
+// base64url cursor that wraps DynamoDB's LastEvaluatedKey — the client passes it
+// back verbatim to fetch the next page, and never has to know the key schema.
+// ---------------------------------------------------------------------------
+
+/** A single page of results plus the cursor for the next one (null = last page). */
+export interface Page<T> {
+  items: T[]
+  nextCursor: string | null
+}
+
+const DEFAULT_PAGE_SIZE = 50
+const MAX_PAGE_SIZE = 100
+
+/** Render-history events auto-expire after 90 days via DynamoDB TTL. */
+const RENDER_TTL_SECONDS = 90 * 24 * 60 * 60
+
+const clampLimit = (limit?: number) =>
+  Math.min(Math.max(Math.trunc(limit ?? DEFAULT_PAGE_SIZE), 1), MAX_PAGE_SIZE)
+
+const encodeCursor = (key?: Record<string, any>): string | null =>
+  key ? Buffer.from(JSON.stringify(key)).toString("base64url") : null
+
+const decodeCursor = (
+  cursor?: string | null,
+): Record<string, any> | undefined => {
+  if (!cursor) return undefined
+  try {
+    return JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"))
+  } catch {
+    // A malformed cursor is treated as "start from the beginning" rather than a
+    // hard error — clients can't wedge themselves with a bad token.
+    return undefined
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Access patterns.
 // ---------------------------------------------------------------------------
 
@@ -209,14 +247,20 @@ export async function getScene(
 
 /**
  * List a user's scenes, most-recently-edited first, via the sparse GSI1.
- * A single-partition Query — cost scales with this user's scene count, never
- * with the size of the table.
+ * A single-partition, paginated Query — cost scales with the page size, never
+ * with this user's total scene count nor the size of the table.
+ *
+ * Only the first page (no cursor, default size) is cached; deep pages bypass the
+ * cache so a paging client always reads through to DynamoDB.
  */
-export async function listScenes(userId: string): Promise<Scene[]> {
-  // Read-through cache: a warm instance serves repeated lists without re-hitting
-  // DynamoDB. Invalidated on every save/delete for this user, so it never serves
-  // a list that's missing the user's own just-made change.
-  return withCache(scenesCacheKey(userId), async () => {
+export async function listScenes(
+  userId: string,
+  opts: { limit?: number; cursor?: string | null } = {},
+): Promise<Page<Scene>> {
+  const limit = clampLimit(opts.limit)
+  const ExclusiveStartKey = decodeCursor(opts.cursor)
+
+  const run = async (): Promise<Page<Scene>> => {
     const result = await db.send(
       new QueryCommand({
         TableName: TABLE_NAME,
@@ -224,10 +268,19 @@ export async function listScenes(userId: string): Promise<Scene[]> {
         KeyConditionExpression: "GSI1PK = :pk",
         ExpressionAttributeValues: { ":pk": userPk(userId) },
         ScanIndexForward: false, // newest updatedAt first
+        Limit: limit,
+        ...(ExclusiveStartKey ? { ExclusiveStartKey } : {}),
       }),
     )
-    return (result.Items || []).map(toScene)
-  })
+    return {
+      items: (result.Items || []).map(toScene),
+      nextCursor: encodeCursor(result.LastEvaluatedKey),
+    }
+  }
+
+  // Cache only the canonical first page (invalidated on every save/delete).
+  const isFirstPage = !opts.cursor && limit === DEFAULT_PAGE_SIZE
+  return isFirstPage ? withCache(scenesCacheKey(userId), run) : run()
 }
 
 /**
@@ -285,6 +338,10 @@ export async function recordRender(input: {
         PK: userPk(input.userId),
         SK: renderSk(now, id),
         entityType: "Render",
+        // DynamoDB TTL (epoch SECONDS) auto-expires render history after 90
+        // days, so the time-series side of each user's partition stays bounded
+        // and old events cost nothing. Scenes carry no ttl and live forever.
+        ttl: Math.floor(now / 1000) + RENDER_TTL_SECONDS,
         ...event,
       },
     }),
@@ -294,14 +351,17 @@ export async function recordRender(input: {
 }
 
 /**
- * List a user's render history, newest first. Reuses the primary key — renders
- * sit in the same partition as that user's scenes and are isolated by the
+ * List a user's render history, newest first — paginated. Reuses the primary
+ * key: renders sit in the same partition as that user's scenes, isolated by the
  * "RENDER#" sort-key prefix, so this is a single Query with no extra index.
  */
 export async function listRenders(
   userId: string,
-  limit = 50,
-): Promise<RenderEvent[]> {
+  opts: { limit?: number; cursor?: string | null } = {},
+): Promise<Page<RenderEvent>> {
+  const limit = clampLimit(opts.limit)
+  const ExclusiveStartKey = decodeCursor(opts.cursor)
+
   const result = await db.send(
     new QueryCommand({
       TableName: TABLE_NAME,
@@ -312,14 +372,18 @@ export async function listRenders(
       },
       ScanIndexForward: false,
       Limit: limit,
+      ...(ExclusiveStartKey ? { ExclusiveStartKey } : {}),
     }),
   )
-  return (result.Items || []).map((i) => ({
-    id: i.id,
-    userId: i.userId,
-    composition: i.composition,
-    durationSec: i.durationSec,
-    status: i.status,
-    createdAt: i.createdAt,
-  }))
+  return {
+    items: (result.Items || []).map((i) => ({
+      id: i.id,
+      userId: i.userId,
+      composition: i.composition,
+      durationSec: i.durationSec,
+      status: i.status,
+      createdAt: i.createdAt,
+    })),
+    nextCursor: encodeCursor(result.LastEvaluatedKey),
+  }
 }
