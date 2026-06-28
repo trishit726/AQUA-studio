@@ -1,0 +1,13 @@
+# Terraform — never commit state (can contain sensitive values) or local cache.
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Variable files may hold secrets; keep examples only.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# The dependency lock file SHOULD be committed — do not ignore .terraform.lock.hcl
