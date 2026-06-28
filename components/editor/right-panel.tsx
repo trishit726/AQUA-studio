@@ -59,8 +59,8 @@ function SectionCard({
     <section
       data-open={open}
       className={cn(
-        "group/section flex flex-col rounded-lg border border-border bg-card/40 transition-all duration-200",
-        "hover:border-primary/30 hover:bg-card/60 hover:shadow-[0_0_0_1px_color-mix(in_oklch,var(--primary)_18%,transparent)]",
+        "group/section flex flex-col rounded-lg border border-border transition-colors duration-200",
+        "hover:border-aqua/50",
       )}
     >
       <button
@@ -103,7 +103,7 @@ export function RightPanel() {
   const e = useEditor()
 
   return (
-    <aside className="accent-veil flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-sidebar">
+    <aside className="flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-sidebar">
       <ScrollArea className="min-h-0 flex-1 scroll-thin">
         <div className="flex flex-col gap-4 p-4">
           {e.isPattern ? <PatternControls /> : null}

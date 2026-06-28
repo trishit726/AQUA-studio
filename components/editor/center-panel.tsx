@@ -45,10 +45,10 @@ export function CenterPanel() {
       {/* Canvas */}
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-6 lg:p-10">
         <div className="w-full max-w-4xl">
-          <div className="relative overflow-hidden rounded-xl border border-border bg-black shadow-2xl shadow-black/50 ring-1 ring-white/5">
+          <div className="relative overflow-hidden rounded-xl border border-border bg-[#111]">
             <SafePlayer />
           </div>
-          <p className="mt-3 text-center text-xs text-muted-foreground text-pretty">{statusText(e)}</p>
+          <p className="mt-3 text-center font-mono text-[11px] text-muted-foreground text-pretty">{statusText(e)}</p>
         </div>
       </div>
 
