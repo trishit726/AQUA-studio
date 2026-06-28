@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { Download, Grid3x3, Loader2, Save, Shuffle, Upload, Waves, Droplets } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   Select,
@@ -65,14 +64,14 @@ function Toolbar() {
       <Separator orientation="vertical" className="mx-1 h-6" />
 
       <div className="flex items-center gap-1.5">
-        <Button variant="ghost" size="sm" className="gap-1.5 rounded-full" onClick={e.save}>
+        <PillButton variant="glass" size="sm" className="gap-1.5" onClick={e.save}>
           <Save className="size-4" />
           Save
-        </Button>
-        <Button variant="ghost" size="sm" className="gap-1.5 rounded-full" onClick={e.load}>
+        </PillButton>
+        <PillButton variant="glass" size="sm" className="gap-1.5" onClick={e.load}>
           <Upload className="size-4" />
           Load
-        </Button>
+        </PillButton>
       </div>
 
       <Separator orientation="vertical" className="mx-1 h-6" />
@@ -82,6 +81,7 @@ function Toolbar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <PillButton
+                variant="glass"
                 size="sm"
                 className="gap-1.5"
                 onClick={() => e.set("seed", Math.floor(Math.random() * 1e9))}
@@ -115,7 +115,7 @@ function Toolbar() {
           </SelectContent>
         </Select>
 
-        <PillButton variant="solid" size="sm" disabled={e.rendering} onClick={e.render} className="gap-1.5">
+        <PillButton variant="metal" size="sm" disabled={e.rendering} onClick={e.render} className="gap-1.5">
           {e.rendering ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
           <span>{e.rendering ? "Rendering…" : "Render MP4"}</span>
         </PillButton>
