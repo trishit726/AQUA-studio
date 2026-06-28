@@ -23,7 +23,6 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { useEditor } from "./editor-provider"
-import { useStagger } from "./use-motion"
 import { COMP_LABELS, type CompId } from "./constants"
 
 const COMP_ICONS: Record<CompId, React.ComponentType<{ className?: string }>> = {
@@ -52,17 +51,16 @@ export function LeftPanel() {
   } = useEditor()
 
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
-  const navRef = useStagger<HTMLElement>({ x: -8, stagger: 0.05, delay: 0.1 })
 
   return (
-    <aside className="accent-veil flex h-full w-72 shrink-0 flex-col border-r border-border bg-sidebar">
+    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-sidebar">
       <div className="flex items-center gap-2.5 px-4 py-3.5">
-        <div className="metal flex size-7 items-center justify-center rounded-md shadow-[0_0_18px_-4px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
-          <Sparkles className="size-4" />
-        </div>
+        <span className="flex size-7 items-center justify-center rounded-full border border-border text-aqua">
+          <Sparkles className="size-3.5" />
+        </span>
         <div className="flex flex-col">
-          <span className="text-sm font-semibold leading-none tracking-tight">Aqua Studio</span>
-          <span className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Motion Editor</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">workspace</span>
+          <span className="text-sm font-medium lowercase tracking-tight">motion editor</span>
         </div>
       </div>
 
@@ -73,7 +71,7 @@ export function LeftPanel() {
         <p className="px-1 pb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Compositions
         </p>
-        <nav ref={navRef} className="flex flex-col gap-0.5">
+        <nav className="flex flex-col gap-0.5">
           {COMP_LABELS.map(({ id, label, hint }) => {
             const Icon = COMP_ICONS[id]
             const active = comp === id
@@ -86,18 +84,17 @@ export function LeftPanel() {
                   "group flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   active
-                    ? "bg-primary/10 text-foreground"
+                    ? "aqua-underline text-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
                 <Icon
-                  className={cn("size-4 shrink-0", active ? "text-primary" : "text-muted-foreground")}
+                  className={cn("size-4 shrink-0", active ? "text-aqua" : "text-muted-foreground")}
                 />
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-sm font-medium leading-tight">{label}</span>
                   <span className="truncate text-[11px] text-muted-foreground">{hint}</span>
                 </span>
-                {active ? <span className="ml-auto size-1.5 rounded-full bg-primary" /> : null}
               </button>
             )
           })}
@@ -106,8 +103,8 @@ export function LeftPanel() {
 
       <Separator className="my-4" />
 
-      {/* Cloud library — glassmorphic, native file-manager feel */}
-      <div className="glass mx-3 mb-3 flex min-h-0 flex-1 flex-col rounded-xl p-3">
+      {/* Cloud library — hairline-framed file manager */}
+      <div className="mx-3 mb-3 flex min-h-0 flex-1 flex-col rounded-xl border border-border p-3">
         <div className="flex items-center justify-between px-1 pb-2">
           <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             <Cloud className="size-3.5" />

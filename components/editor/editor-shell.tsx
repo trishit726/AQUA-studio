@@ -1,6 +1,7 @@
 "use client"
 
-import { Download, Grid3x3, Loader2, RefreshCw, Save, Shuffle, Upload, Waves, Droplets } from "lucide-react"
+import Link from "next/link"
+import { Download, Grid3x3, Loader2, Save, Shuffle, Upload, Waves, Droplets } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -13,12 +14,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { PillButton } from "@/components/blueprint/pill-button"
+import { Wordmark } from "@/components/blueprint/wordmark"
 import { useEditor } from "./editor-provider"
 import { LeftPanel } from "./left-panel"
 import { CenterPanel } from "./center-panel"
 import { RightPanel } from "./right-panel"
-import { LiquidButton } from "./liquid-button"
-import { useStagger } from "./use-motion"
 import { RATIOS } from "./constants"
 
 function QuickToggle({
@@ -37,11 +38,11 @@ function QuickToggle({
       <TooltipTrigger
         onClick={onClick}
         className={cn(
-          "inline-flex size-8 items-center justify-center rounded-md border transition-colors",
+          "inline-flex size-8 items-center justify-center rounded-full border transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
           active
-            ? "border-primary/40 bg-primary/10 text-primary"
-            : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground",
+            ? "border-aqua text-foreground ring-1 ring-aqua"
+            : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
         )}
         aria-label={label}
         aria-pressed={active}
@@ -55,18 +56,20 @@ function QuickToggle({
 
 function Toolbar() {
   const e = useEditor()
-  const ref = useStagger<HTMLElement>({ y: -6, stagger: 0.04, duration: 0.45 })
   return (
-    <header
-      ref={ref}
-      className="relative flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4"
-    >
+    <header className="relative z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
+      <Link href="/" className="mr-1 shrink-0" aria-label="Back to aqua studio home">
+        <Wordmark className="text-base" />
+      </Link>
+
+      <Separator orientation="vertical" className="mx-1 h-6" />
+
       <div className="flex items-center gap-1.5">
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={e.save}>
+        <Button variant="ghost" size="sm" className="gap-1.5 rounded-full" onClick={e.save}>
           <Save className="size-4" />
           Save
         </Button>
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={e.load}>
+        <Button variant="ghost" size="sm" className="gap-1.5 rounded-full" onClick={e.load}>
           <Upload className="size-4" />
           Load
         </Button>
@@ -78,15 +81,14 @@ function Toolbar() {
         <div className="flex items-center gap-1.5">
           <Tooltip>
             <TooltipTrigger asChild>
-              <LiquidButton
-                finish="glass"
+              <PillButton
                 size="sm"
                 className="gap-1.5"
                 onClick={() => e.set("seed", Math.floor(Math.random() * 1e9))}
               >
                 <Shuffle className="size-4" />
                 Generate
-              </LiquidButton>
+              </PillButton>
             </TooltipTrigger>
             <TooltipContent>Reroll the pattern seed</TooltipContent>
           </Tooltip>
@@ -99,7 +101,7 @@ function Toolbar() {
 
       <div className="ml-auto flex items-center gap-2">
         <Select value={e.ratio} onValueChange={e.setRatio}>
-          <SelectTrigger size="sm" className="w-[88px]">
+          <SelectTrigger size="sm" className="w-[88px] rounded-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -113,10 +115,10 @@ function Toolbar() {
           </SelectContent>
         </Select>
 
-        <LiquidButton finish="metal" disabled={e.rendering} onClick={e.render} className="gap-1.5">
+        <PillButton variant="solid" size="sm" disabled={e.rendering} onClick={e.render} className="gap-1.5">
           {e.rendering ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
           <span>{e.rendering ? "Rendering…" : "Render MP4"}</span>
-        </LiquidButton>
+        </PillButton>
       </div>
     </header>
   )
