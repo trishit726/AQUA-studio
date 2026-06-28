@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { motion } from "motion/react"
 import { ArrowUpRight, Play } from "lucide-react"
 import { Wordmark } from "@/components/blueprint/wordmark"
@@ -59,11 +60,20 @@ export function Hero() {
           swiss · blueprint · motion graphics
         </motion.p>
 
-        <motion.div variants={rise} custom={1} initial="hidden" animate="show">
-          <Wordmark
-            stack
-            dot={false}
-            className="text-[18vw] leading-[0.8] sm:text-[15vw] md:text-[12rem] lg:text-[14rem]"
+        <motion.div
+          variants={rise}
+          custom={1}
+          initial="hidden"
+          animate="show"
+          className="relative w-full max-w-3xl"
+        >
+          <Image
+            src="/images/aqua-studio-logo.png"
+            alt="aqua studio — logotype on a blueprint construction grid"
+            width={1680}
+            height={945}
+            priority
+            className="h-auto w-full mix-blend-multiply select-none"
           />
         </motion.div>
 
