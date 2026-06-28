@@ -56,7 +56,9 @@ Vercel + AWS Databases stack.
 | Observability | CloudWatch EMF metrics, logs, dashboard, alarms |
 
 Full diagram: [`docs/architecture.md`](docs/architecture.md) ·
-screenshot-ready: [`docs/architecture-h0.html`](docs/architecture-h0.html).
+screenshot-ready: [`docs/architecture-h0.html`](docs/architecture-h0.html) ·
+**system design doc** (scale math, data-model rationale, bottlenecks, failure
+modes, scale path): [`docs/system-design.md`](docs/system-design.md).
 
 ## 5. Required Devpost fields
 

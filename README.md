@@ -93,7 +93,7 @@ flowchart TB
   RND -.metrics.-> CW
 ```
 
-Full diagram + Well-Architected mapping: [`docs/architecture.md`](docs/architecture.md). Infrastructure-as-code: [`terraform/`](terraform).
+Full diagram + Well-Architected mapping: [`docs/architecture.md`](docs/architecture.md). **System design doc** (scale math, data model rationale, bottlenecks, failure modes): [`docs/system-design.md`](docs/system-design.md). Infrastructure-as-code: [`terraform/`](terraform).
 
 - **Editor + API** (`app/`, `components/`) — Next.js 16 + React 19 with the Remotion Player. API routes hold all **AI calls server‑side** (keys/credentials never reach the browser) and read/write scenes and render history in DynamoDB.
 - **Data layer** (`app/lib/db.ts`) — a **DynamoDB single‑table design**: every user owns one item collection, holding both saved scenes and render‑history events, retrievable with single‑partition Queries (no Scans). A sparse GSI lists a user's scenes by recency. A read‑through cache (`app/lib/cache.ts`; DAX in production) fronts the hot list path.
