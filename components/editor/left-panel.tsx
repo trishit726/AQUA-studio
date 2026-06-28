@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { useEditor } from "./editor-provider"
+import { useStagger } from "./use-motion"
 import { COMP_LABELS, type CompId } from "./constants"
 
 const COMP_ICONS: Record<CompId, React.ComponentType<{ className?: string }>> = {
@@ -51,11 +52,12 @@ export function LeftPanel() {
   } = useEditor()
 
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+  const navRef = useStagger<HTMLElement>({ x: -8, stagger: 0.05, delay: 0.1 })
 
   return (
     <aside className="accent-veil flex h-full w-72 shrink-0 flex-col border-r border-border bg-sidebar">
       <div className="flex items-center gap-2.5 px-4 py-3.5">
-        <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+        <div className="metal flex size-7 items-center justify-center rounded-md shadow-[0_0_18px_-4px_color-mix(in_oklch,var(--primary)_70%,transparent)]">
           <Sparkles className="size-4" />
         </div>
         <div className="flex flex-col">
@@ -71,7 +73,7 @@ export function LeftPanel() {
         <p className="px-1 pb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Compositions
         </p>
-        <nav className="flex flex-col gap-0.5">
+        <nav ref={navRef} className="flex flex-col gap-0.5">
           {COMP_LABELS.map(({ id, label, hint }) => {
             const Icon = COMP_ICONS[id]
             const active = comp === id

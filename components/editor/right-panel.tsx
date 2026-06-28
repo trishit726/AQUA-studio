@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useEditor } from "./editor-provider"
+import { useStagger } from "./use-motion"
 import { BarSlider, ColorSwatch, Field } from "./primitives"
 import { MUSIC, PALETTE } from "./constants"
 import { isStyleComp } from "./style-comps"
@@ -101,11 +102,12 @@ function SectionCard({
 
 export function RightPanel() {
   const e = useEditor()
+  const ref = useStagger<HTMLDivElement>({ y: 10, stagger: 0.05, delay: 0.05 })
 
   return (
     <aside className="accent-veil flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-sidebar">
       <ScrollArea className="min-h-0 flex-1 scroll-thin">
-        <div className="flex flex-col gap-4 p-4">
+        <div ref={ref} className="flex flex-col gap-4 p-4">
           {e.isPattern ? <PatternControls /> : null}
           {isStyleComp(e.comp) ? <StyleControls /> : null}
           {e.comp === "Timeline" ? <TimelineControls /> : null}

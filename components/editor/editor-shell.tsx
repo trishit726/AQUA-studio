@@ -17,6 +17,8 @@ import { useEditor } from "./editor-provider"
 import { LeftPanel } from "./left-panel"
 import { CenterPanel } from "./center-panel"
 import { RightPanel } from "./right-panel"
+import { LiquidButton } from "./liquid-button"
+import { useStagger } from "./use-motion"
 import { RATIOS } from "./constants"
 
 function QuickToggle({
@@ -53,8 +55,12 @@ function QuickToggle({
 
 function Toolbar() {
   const e = useEditor()
+  const ref = useStagger<HTMLElement>({ y: -6, stagger: 0.04, duration: 0.45 })
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
+    <header
+      ref={ref}
+      className="relative flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4"
+    >
       <div className="flex items-center gap-1.5">
         <Button variant="ghost" size="sm" className="gap-1.5" onClick={e.save}>
           <Save className="size-4" />
@@ -72,15 +78,15 @@ function Toolbar() {
         <div className="flex items-center gap-1.5">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
+              <LiquidButton
+                finish="glass"
                 size="sm"
                 className="gap-1.5"
                 onClick={() => e.set("seed", Math.floor(Math.random() * 1e9))}
               >
                 <Shuffle className="size-4" />
                 Generate
-              </Button>
+              </LiquidButton>
             </TooltipTrigger>
             <TooltipContent>Reroll the pattern seed</TooltipContent>
           </Tooltip>
@@ -107,10 +113,10 @@ function Toolbar() {
           </SelectContent>
         </Select>
 
-        <Button disabled={e.rendering} onClick={e.render} className="gap-1.5">
+        <LiquidButton finish="metal" disabled={e.rendering} onClick={e.render} className="gap-1.5">
           {e.rendering ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
-          {e.rendering ? "Rendering…" : "Render MP4"}
-        </Button>
+          <span>{e.rendering ? "Rendering…" : "Render MP4"}</span>
+        </LiquidButton>
       </div>
     </header>
   )
