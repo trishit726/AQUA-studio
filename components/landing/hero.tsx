@@ -26,7 +26,7 @@ const SPECS = [
 
 export function Hero() {
   return (
-    <main className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+    <main className="relative flex min-h-screen flex-col overflow-hidden bg-white text-foreground">
       {/* Decoration */}
       <div className="blueprint-grid pointer-events-none absolute inset-0" />
       <ConstructionLines className="opacity-70" />
@@ -39,7 +39,7 @@ export function Hero() {
           <span className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground sm:block">
             v1.0 — motion studio
           </span>
-          <PillButton asChild size="sm">
+          <PillButton asChild variant="glass" size="sm">
             <Link href="/editor">
               open editor
               <ArrowUpRight className="size-3.5" />
@@ -73,7 +73,7 @@ export function Hero() {
             width={1680}
             height={945}
             priority
-            className="h-auto w-full mix-blend-multiply select-none"
+            className="h-auto w-full mix-blend-multiply select-none [mask-image:radial-gradient(120%_120%_at_50%_50%,black_72%,transparent_96%)] [-webkit-mask-image:radial-gradient(120%_120%_at_50%_50%,black_72%,transparent_96%)]"
           />
         </motion.div>
 
@@ -95,13 +95,13 @@ export function Hero() {
           animate="show"
           className="mt-10 flex flex-wrap items-center justify-center gap-3"
         >
-          <PillButton asChild variant="solid" size="lg">
+          <PillButton asChild variant="metal" size="lg">
             <Link href="/editor">
               <Play className="size-4" />
               open editor
             </Link>
           </PillButton>
-          <PillButton asChild size="lg">
+          <PillButton asChild variant="glass" size="lg">
             <Link href="/editor">view compositions</Link>
           </PillButton>
         </motion.div>

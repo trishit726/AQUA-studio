@@ -12,11 +12,23 @@ const sizes = {
 } as const
 
 type PillButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  /** "outline" = ink hairline pill (default). "solid" = aqua fill (one primary action). */
-  variant?: "outline" | "solid"
+  /**
+   * "outline" = ink hairline pill (default).
+   * "solid"   = flat aqua fill.
+   * "metal"   = metallic aqua with specular + sheen (primary action).
+   * "glass"   = frosted liquid-glass (secondary action).
+   */
+  variant?: "outline" | "solid" | "metal" | "glass"
   size?: keyof typeof sizes
   asChild?: boolean
 }
+
+const variants = {
+  outline: "",
+  solid: "pill-solid",
+  metal: "pill-metal",
+  glass: "pill-glass",
+} as const
 
 /**
  * Outlined-pill button for the aqua-studio blueprint identity.
@@ -39,7 +51,7 @@ export const PillButton = React.forwardRef<HTMLButtonElement, PillButtonProps>(
         ref={ref}
         className={cn(
           "pill font-sans font-medium tracking-tight select-none",
-          variant === "solid" && "pill-solid",
+          variants[variant],
           sizes[size],
           className,
         )}
