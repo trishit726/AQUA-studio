@@ -44,6 +44,20 @@ Markdown → `![A title designed in Aqua Studio](https://cdn.jsdelivr.net/gh/tri
 
 ---
 
+## 2b. Product demo — the **real editor** (recommended for "What it does")
+
+`https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-app.gif`
+
+```html
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-app.gif" width="1000" alt="Aqua Studio editor — live demo">
+</p>
+```
+Widths → `600` · `800` · `1000`.
+Markdown → `![Aqua Studio editor — live demo](https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-app.gif)`
+
+---
+
 ## 3. Live editor / "What it does" — the procedural motion
 
 `https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-flood-intro.gif`
@@ -141,6 +155,7 @@ Markdown → `![Aqua Studio system architecture](https://cdn.jsdelivr.net/gh/tri
 | Story section | Asset |
 |---|---|
 | **Hero (top)** | `aqua-studio-logo.png`, then `demo-one-piece-reveal.gif` (big) |
+| **What it does / the real app** | `demo-app.gif` (actual editor screen-recording) |
 | **What it does / Live editor** | `demo-flood-intro.gif` |
 | **What it does / Examples** | `demo-kung-fu-panda.gif` + `demo-katana.gif` side by side |
 | **Range / Export** | `demo-backrooms.gif` (and `demo-one-piece.gif` optional) |
