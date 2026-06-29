@@ -23,6 +23,12 @@ export const SERVER = (
   process.env.NEXT_PUBLIC_RENDER_SERVER || "http://localhost:3001"
 ).replace(/\/$/, "")
 
+// When "true", the editor renders via AWS Lambda (Remotion) — works on the
+// deployed site with no local server. Set in Vercel after deploying the Lambda
+// function + site (see LAMBDA-SETUP.md). Falls back to the local render server
+// (SERVER above) when unset.
+export const LAMBDA_RENDER = process.env.NEXT_PUBLIC_LAMBDA_RENDER === "true"
+
 // Default brand palette + black/white — the preset "COLOR SET".
 export const PALETTE = ["#6fa5a9", "#93ab5a", "#cf9f4a", "#e0573a", "#000000", "#ffffff"]
 

@@ -8,6 +8,7 @@ const nextConfig = {
   serverExternalPackages: [
     "@remotion/renderer",
     "@remotion/bundler",
+    "@remotion/lambda",
     "remotion",
   ],
 }

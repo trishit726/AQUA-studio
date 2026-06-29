@@ -23,6 +23,7 @@ import { ANIM_TYPES } from "@/src/lib/patterngen/engine"
 import {
   MUSIC,
   SERVER,
+  LAMBDA_RENDER,
   PALETTE,
   type CompId,
   clamp01,
@@ -700,14 +701,46 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         body = { composition: "PatternTitle", props: sendProps, imageData, imageExt, duration }
       }
       body.ratio = ratio
-      const res = await fetch(`${SERVER}/render`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) throw new Error(await res.text())
-      const json = await res.json()
-      setVideoUrl(`${SERVER}${json.url}`)
+
+      let videoOut: string
+      if (LAMBDA_RENDER) {
+        // Serverless path — render on AWS Lambda (Remotion). Works on the
+        // deployed site with no local server: trigger, then poll to completion.
+        setStatus("Rendering on AWS Lambda…")
+        const startRes = await fetch("/api/render-lambda", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ composition: body.composition, inputProps: body.props }),
+        })
+        if (!startRes.ok) throw new Error(await startRes.text())
+        const handle = await startRes.json()
+        let outputUrl: string | null = null
+        while (!outputUrl) {
+          await new Promise((r) => setTimeout(r, 2500))
+          const pRes = await fetch("/api/render-lambda/progress", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(handle),
+          })
+          if (!pRes.ok) throw new Error(await pRes.text())
+          const p = await pRes.json()
+          if (typeof p.overallProgress === "number")
+            setStatus(`Rendering on Lambda… ${Math.round(p.overallProgress * 100)}%`)
+          if (p.done) outputUrl = p.outputUrl
+        }
+        videoOut = outputUrl
+      } else {
+        // Local render server (npm run server).
+        const res = await fetch(`${SERVER}/render`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error(await res.text())
+        const json = await res.json()
+        videoOut = `${SERVER}${json.url}`
+      }
+      setVideoUrl(videoOut)
       setStatus("Done — your MP4 is ready below.")
       toast.success("Render complete.")
       if (userId) {
@@ -727,9 +760,17 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           .catch((err) => console.error("[v0] log-render error", err))
       }
     } catch (e) {
-      setStatus("Error — is the render server up? (npm run server)")
+      setStatus(
+        LAMBDA_RENDER
+          ? "Render error — check the Lambda function/site config."
+          : "Error — is the render server up? (npm run server)",
+      )
       console.error("[v0] render error", e)
-      toast.error("Render failed — is the render server running?")
+      toast.error(
+        LAMBDA_RENDER
+          ? "Lambda render failed — see logs."
+          : "Render failed — is the render server running?",
+      )
       if (userId) {
         fetch("/api/log-render", {
           method: "POST",
