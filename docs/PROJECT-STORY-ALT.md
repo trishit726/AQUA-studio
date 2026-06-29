@@ -26,15 +26,16 @@ Great animated titles — the bold, editorial kind — are **gatekept**. They me
 
 It's a *system*, not a template pack. Same engine, completely different results:
 
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-one-piece-reveal.gif" width="420" alt="Animated title-card example">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-flood-intro.gif" width="420" alt="Animated title-card example">
-</p>
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-kung-fu-panda.gif" width="280" alt="Animated title-card example">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-katana.gif" width="280" alt="Animated title-card example">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-backrooms.gif" width="280" alt="Animated title-card example">
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-one-piece-reveal.gif" width="440" alt="Animated title-card example"></td>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-flood-intro.gif" width="440" alt="Animated title-card example"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-katana.gif" width="440" alt="Animated title-card example"></td>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-backrooms.gif" width="440" alt="Animated title-card example"></td>
+  </tr>
+</table>
 <p align="center"><i>One engine. No templates. No prompts.</i></p>
 
 ### Why DynamoDB (the decision that defines it)

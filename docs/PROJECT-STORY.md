@@ -38,14 +38,16 @@ I love the bold, editorial animated titles you see on great brand and creator ch
 
 The point isn't templates — it's a **system**. The same engine produces wildly different title cards depending on type, palette, density, and motion:
 
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-kung-fu-panda.gif" width="420" alt="Animated title-card example">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-katana.gif" width="420" alt="Animated title-card example">
-</p>
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-backrooms.gif" width="420" alt="Animated title-card example">
-  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-one-piece.gif" width="420" alt="Animated title-card example">
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-kung-fu-panda.gif" width="440" alt="Animated title-card example"></td>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-katana.gif" width="440" alt="Animated title-card example"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-backrooms.gif" width="440" alt="Animated title-card example"></td>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/demo-one-piece.gif" width="440" alt="Animated title-card example"></td>
+  </tr>
+</table>
 <p align="center"><i>Four completely different cards — same engine, no templates, no prompts.</i></p>
 
 ## The part I'm proudest of — the data layer
@@ -60,6 +62,11 @@ It's a **single‑table design**: one item collection per user (`USER#<id>`) hol
   <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/diagram-dynamodb.png" width="820" alt="DynamoDB single-table design">
 </p>
 
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-dynamodb-items.png" width="900" alt="DynamoDB Explore items — live in the AWS console">
+</p>
+<p align="center"><i>The same table in the AWS console — real <code>USER#…</code> / <code>RENDER#…</code> rows, one partition per user. Not a diagram; the live data.</i></p>
+
 ## How it's built
 
 - **Front end — Vercel:** Next.js 16 + React 19 with a live Remotion preview. Every API route runs server‑side, so AWS credentials never touch the browser.
@@ -70,6 +77,18 @@ It's a **single‑table design**: one item collection per user (`USER#<id>`) hol
 <p align="center">
   <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/architecture-diagram.png" width="900" alt="Aqua Studio system architecture">
 </p>
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-lambda-metrics.png" width="440" alt="Lambda render metrics in CloudWatch"></td>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-s3-renders.png" width="440" alt="Rendered MP4s in S3"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-cloudwatch-dashboard.png" width="900" alt="CloudWatch dashboard — live render and DynamoDB metrics">
+</p>
+<p align="center"><i>Live on AWS: Lambda renders (71 invocations, 0 errors), MP4 outputs in S3, and a CloudWatch dashboard tracking render latency + DynamoDB capacity.</i></p>
 
 ## What it took to make it real
 
