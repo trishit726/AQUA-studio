@@ -36,3 +36,8 @@ next-env.d.ts
 # agent-specific configurations
 .agents/
 
+
+# large local working dirs (renders, raw gifs) — never commit
+GIF/
+video/
+public/examples/

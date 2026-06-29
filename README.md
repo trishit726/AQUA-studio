@@ -36,7 +36,7 @@ Aqua Studio collapses that to: **design → editable scene → MP4.**
   <img src="https://cdn.jsdelivr.net/gh/trishit726/Pattern-studio-@media-v2/assets/demo-katana.gif" width="405" alt="Katana scene">
 </p>
 
-All six animated demos (One Piece, Kung Fu Panda, Katana, Backrooms, the flood intro…) live in [`assets/`](assets), with ready‑to‑paste embed snippets in [`DEVPOST_MEDIA.md`](DEVPOST_MEDIA.md).
+All six animated demos (One Piece, Kung Fu Panda, Katana, Backrooms, the flood intro…) live in [`assets/`](assets), with ready‑to‑paste embed snippets in [`DEVPOST_MEDIA.md`](docs/DEVPOST_MEDIA.md).
 
 ---
 
@@ -94,7 +94,7 @@ flowchart TB
 
 - **Editor + API** (`app/`, `components/`) — Next.js 16 + React 19 with the Remotion Player. API routes run **server‑side only** (AWS credentials never reach the browser) and read/write scenes and render history in DynamoDB. Identity is a zero‑friction **anonymous device‑id** (`lib/auth.tsx`) that doubles as the DynamoDB partition key — no sign‑in required (Clerk is an optional layer).
 - **Data layer** (`app/lib/db.ts`) — a **DynamoDB single‑table design**: every user owns one item collection, holding both saved scenes and render‑history events, retrievable with single‑partition **paginated** Queries (no Scans). A sparse GSI lists a user's scenes by recency; render events carry a TTL. A read‑through cache (`app/lib/cache.ts`; DAX in production) fronts the hot list path.
-- **Serverless rendering** (`app/api/render-lambda/*`) — **MP4 rendering runs on AWS Lambda** via Remotion (`renderMediaOnLambda`): the API triggers a render, the client polls progress, and Lambda writes the finished MP4 to **S3**. Works on the deployed site with no local server. Env‑gated by `NEXT_PUBLIC_LAMBDA_RENDER`; see [`LAMBDA-SETUP.md`](LAMBDA-SETUP.md).
+- **Serverless rendering** (`app/api/render-lambda/*`) — **MP4 rendering runs on AWS Lambda** via Remotion (`renderMediaOnLambda`): the API triggers a render, the client polls progress, and Lambda writes the finished MP4 to **S3**. Works on the deployed site with no local server. Env‑gated by `NEXT_PUBLIC_LAMBDA_RENDER`; see [`LAMBDA-SETUP.md`](docs/LAMBDA-SETUP.md).
 - **Object storage** — uploaded background images offload to **S3** (`/api/upload`, `lib/server/storage.ts`); only the URL is stored in the DynamoDB item. Lambda render outputs also live in S3.
 - **Local render alternative** (`server/render-server.mjs`) — an Express backend that renders with `@remotion/renderer` + ffmpeg (multi‑ratio MP4/WebM/GIF) for local dev; the deployed app uses Lambda instead.
 - **Observability** — the app and render server emit **CloudWatch EMF metrics** (`lib/metrics.ts`, `server/lib/metrics.mjs`): render latency, scene ops, errors — with a Terraform dashboard + p90 alarm.
@@ -189,7 +189,7 @@ Both AI routes run on whichever provider `.env` selects — Gemini, Claude on Ve
 
 The editor and DynamoDB run on **Vercel**, but **MP4 rendering can't** — Remotion's renderer launches **headless Chromium + ffmpeg**, runs for tens of seconds, and writes files to disk, which exceeds Vercel's function limits. So rendering runs on **AWS Lambda**.
 
-- **Production (live):** `POST /api/render-lambda` calls `renderMediaOnLambda()`; the editor polls `/api/render-lambda/progress` until done; Lambda writes the MP4 to **S3** and the browser plays the public URL. Works for anyone on the deployed site — no local server. Setup: [`LAMBDA-SETUP.md`](LAMBDA-SETUP.md). Toggle: `NEXT_PUBLIC_LAMBDA_RENDER=true`.
+- **Production (live):** `POST /api/render-lambda` calls `renderMediaOnLambda()`; the editor polls `/api/render-lambda/progress` until done; Lambda writes the MP4 to **S3** and the browser plays the public URL. Works for anyone on the deployed site — no local server. Setup: [`LAMBDA-SETUP.md`](docs/LAMBDA-SETUP.md). Toggle: `NEXT_PUBLIC_LAMBDA_RENDER=true`.
 - **Local dev:** run `npm run server` for a local Express renderer (`server/render-server.mjs`) that also derives multi‑ratio MP4/WebM/GIF via ffmpeg. The editor falls back to it when `NEXT_PUBLIC_LAMBDA_RENDER` is unset.
 
 Generate / edit / save and **render** all work on the deployed site.

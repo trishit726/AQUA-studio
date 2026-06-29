@@ -190,7 +190,7 @@ account layer but never required.
   `NEXT_PUBLIC_LAMBDA_RENDER=true`.
 - **Table provisioning:** `npm run setup:db` (or `terraform apply`).
 - **Lambda provisioning:** `npm run lambda:fn` + `npm run lambda:site`
-  (see [`LAMBDA-SETUP.md`](../LAMBDA-SETUP.md)).
+  (see [`LAMBDA-SETUP.md`](LAMBDA-SETUP.md)).
 
 ---
 

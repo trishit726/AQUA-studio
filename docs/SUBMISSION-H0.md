@@ -27,7 +27,7 @@ Vercel + AWS Databases stack.
 > events omit the index attributes so they cost nothing on it. Ownership is
 > enforced by the partition key, not by application code.
 
-(Full data model: [`app/lib/db.ts`](app/lib/db.ts) · IaC: [`terraform/main.tf`](terraform/main.tf))
+(Full data model: [`app/lib/db.ts`](../app/lib/db.ts) · IaC: [`terraform/main.tf`](../terraform/main.tf))
 
 ## 3. What it does / who it's for / why it matters
 
@@ -55,10 +55,10 @@ Vercel + AWS Databases stack.
 | Render | **AWS Lambda** (Remotion `renderMediaOnLambda`) → S3 — serverless, live on the deployed site |
 | Observability | CloudWatch EMF metrics, logs, dashboard, alarms |
 
-Full diagram: [`docs/architecture.md`](docs/architecture.md) ·
-screenshot-ready: [`docs/architecture-h0.html`](docs/architecture-h0.html) ·
+Full diagram: [`docs/architecture.md`](architecture.md) ·
+screenshot-ready: [`docs/architecture-h0.html`](architecture-h0.html) ·
 **system design doc** (scale math, data-model rationale, bottlenecks, failure
-modes, scale path): [`docs/system-design.md`](docs/system-design.md).
+modes, scale path): [`docs/system-design.md`](system-design.md).
 
 ## 5. Required Devpost fields
 
@@ -116,7 +116,7 @@ Publish a short blog/video on **how you built Aqua Studio on DynamoDB + Vercel**
 (dev.to, Medium, LinkedIn, builder.aws.com, or YouTube). Include the line *"I
 created this content for the H0 Hackathon"* and the hashtag **#H0Hackathon**.
 A good angle: "Single-table DynamoDB design for a creative tool — one query,
-zero Scans." Draft material already exists in [`SUBMISSION-STORY.md`](SUBMISSION-STORY.md).
+zero Scans." Draft material already exists in [`SUBMISSION-STORY.md`](PROJECT-STORY.md).
 
 ## 9. "Materially updated during the submission period" (rules §4)
 
