@@ -73,8 +73,8 @@ export type PatternTitleProps = z.infer<typeof patternTitleSchema>;
 
 export const patternTitleDefaults: PatternTitleProps = {
   titles: [
-    { id: "t1", kind: "block", text: "PATTERN\nSTUDIO", x: 0.36, y: 0.46, size: 130 },
-    { id: "t2", kind: "label", text: "MOTION, FROM A PROMPT", x: 0.36, y: 0.61, size: 30 },
+    { id: "t1", kind: "block", text: "AQUA\nSTUDIO", x: 0.36, y: 0.46, size: 130 },
+    { id: "t2", kind: "label", text: "MOTION, ON A GRID", x: 0.36, y: 0.61, size: 30 },
   ],
   seed: 7,
   density: 10,

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState } from "react"
+import React, { createContext, useContext, useState, useEffect } from "react"
 import {
   ClerkProvider,
   useAuth,
@@ -65,38 +65,39 @@ const ClerkAuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children })
   )
 }
 
-// Mock auth provider used when no Clerk key is configured.
-const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mockUser, setMockUser] = useState<string | null>(null)
+// Frictionless anonymous identity — used when no Clerk key is configured.
+//
+// There is NO login step. Every visitor is silently assigned a persistent,
+// auto-generated device id (stored in localStorage) that becomes their DynamoDB
+// partition key. Save / load / cloud library all work immediately, for anyone,
+// with zero sign-in. (Clerk remains available as an *optional* account layer if
+// a publishable key is ever configured — but it is never required to use the app.)
+const AnonymousAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [userId, setUserId] = useState<string | null>(null)
 
-  const handleLogin = () => {
-    const name =
-      typeof window !== "undefined"
-        ? window.prompt("Enter a guest username to simulate an account:")
-        : null
-    if (name && name.trim()) setMockUser(name.trim())
-  }
-
-  const handleLogout = () => setMockUser(null)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const KEY = "aqua_anon_id"
+    let id = window.localStorage.getItem(KEY)
+    if (!id) {
+      const rand =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      id = `anon-${rand}`
+      window.localStorage.setItem(KEY, id)
+    }
+    setUserId(id)
+  }, [])
 
   const authValue: AppAuthContextType = {
-    isSignedIn: !!mockUser,
-    userId: mockUser ? `mock_${mockUser.toLowerCase().replace(/\s+/g, "_")}` : null,
-    userName: mockUser,
-    userEmail: mockUser ? `${mockUser.toLowerCase()}@example.com` : null,
-    getToken: async () => "mock-session-token",
-    AuthUI: mockUser ? (
-      <div className="flex items-center gap-2.5">
-        <span className="text-sm text-muted-foreground">Guest: {mockUser}</span>
-        <Button variant="ghost" size="sm" onClick={handleLogout}>
-          Sign out
-        </Button>
-      </div>
-    ) : (
-      <Button size="sm" onClick={handleLogin}>
-        Sign in
-      </Button>
-    ),
+    // Always "signed in" — no gate. userId resolves on mount (one tick).
+    isSignedIn: true,
+    userId,
+    userName: "Guest",
+    userEmail: null,
+    getToken: async () => null,
+    AuthUI: null,
   }
 
   return (
@@ -112,7 +113,7 @@ export const AppAuthProvider: React.FC<{ children: React.ReactNode }> = ({ child
       </ClerkProvider>
     )
   }
-  return <MockAuthProvider>{children}</MockAuthProvider>
+  return <AnonymousAuthProvider>{children}</AnonymousAuthProvider>
 }
 
 export const useAppAuth = () => {

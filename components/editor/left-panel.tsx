@@ -127,7 +127,7 @@ export function LeftPanel() {
           <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center">
             <Cloud className="mx-auto mb-2 size-5 text-muted-foreground" />
             <p className="text-xs text-muted-foreground text-pretty">
-              Sign in to save and load scenes from your cloud library.
+              Your saved scenes will appear here — hit Save to add one.
             </p>
           </div>
         ) : (

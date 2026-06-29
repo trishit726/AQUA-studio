@@ -21,7 +21,7 @@ const rise = {
 const SPECS = [
   { k: "01", label: "procedural pattern engine", note: "seed-driven swiss grids" },
   { k: "02", label: "live remotion preview", note: "frame-accurate scrubbing" },
-  { k: "03", label: "ai brand generation", note: "palette · motion · type" },
+  { k: "03", label: "multi-format export", note: "mp4 · webm · gif · any ratio" },
 ]
 
 export function Hero() {

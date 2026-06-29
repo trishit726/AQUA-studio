@@ -428,7 +428,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const saveSceneToCloud = async (name: string) => {
     if (!userId) {
-      toast.error("Please sign in to save scenes to the cloud.")
+      // Anonymous id is still initializing (first tick) — no sign-in required.
+      toast.error("Just a moment — initializing your library…")
       return
     }
     const cleanName = name.trim()
