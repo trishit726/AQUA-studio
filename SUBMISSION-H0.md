@@ -52,7 +52,7 @@ Vercel + AWS Databases stack.
 | Cache | In-process read-through TTL cache (live, `app/lib/cache.ts`); DAX provisioned in Terraform as the production path |
 | Large assets | Uploaded background images offloaded to S3 (`/api/upload`), only the URL stored in the DynamoDB item |
 | Object storage + CDN | S3 (rendered media) behind CloudFront |
-| Render | Remotion + ffmpeg on long-lived compute (can't run on Vercel) |
+| Render | **AWS Lambda** (Remotion `renderMediaOnLambda`) → S3 — serverless, live on the deployed site |
 | Observability | CloudWatch EMF metrics, logs, dashboard, alarms |
 
 Full diagram: [`docs/architecture.md`](docs/architecture.md) ·

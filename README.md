@@ -73,33 +73,31 @@ flowchart TB
     CDN["Edge Network<br/>static assets · TLS"]
     APP["Next.js 16 App + API<br/>editor · /api/* · Node runtime"]
   end
-  AUTH["Clerk Auth<br/>userId → DynamoDB partition key"]
-  AI["AI model<br/>Gemini / Claude — server-side"]
+  ID["Anonymous device-id (localStorage)<br/>Clerk optional · → DynamoDB partition key"]
   subgraph AWS["▸ AWS"]
-    DAX["DAX cache"] --> DDB[("DynamoDB<br/>single-table: scenes + renders")]
-    S3[("S3<br/>rendered MP4/WebM/GIF")]
-    CF["CloudFront CDN"]
-    RND["Render workers<br/>Remotion + ffmpeg"]
-    CW["CloudWatch<br/>EMF metrics · logs · alarms"]
+    DAX["DAX cache<br/>(provisioned)"] --> DDB[("DynamoDB<br/>single-table: scenes + render history")]
+    LMB["Lambda — Remotion<br/>serverless MP4 render (LIVE)"]
+    S3[("S3<br/>render output + image uploads")]
+    CW["CloudWatch<br/>EMF metrics · logs"]
   end
   U --> CDN --> APP
-  APP -->|verify JWT| AUTH
-  APP -->|read-through| DAX
-  APP -->|/api/generate, /api/script| AI
-  APP -->|render| RND -->|upload| S3
-  RND -->|log event| DDB
-  U -->|fetch render| CF --> S3
-  APP -.metrics.-> CW
-  RND -.metrics.-> CW
+  APP -->|userId = partition key| ID
+  APP -->|read-through scenes + render history| DAX
+  APP -->|"trigger + poll · /api/render-lambda"| LMB -->|writes MP4| S3
+  APP -->|"image offload · /api/upload"| S3
+  U -->|fetch finished MP4| S3
+  APP -.EMF metrics.-> CW
+  LMB -.logs.-> CW
 ```
 
-Full diagram + Well-Architected mapping: [`docs/architecture.md`](docs/architecture.md). **System design doc** (scale math, data model rationale, bottlenecks, failure modes): [`docs/system-design.md`](docs/system-design.md). Infrastructure-as-code: [`terraform/`](terraform).
+**[`docs/technical-architecture.md`](docs/technical-architecture.md)** — detailed tech stack + every AWS service and how it's used. Also: [`docs/architecture.md`](docs/architecture.md) (diagram + Well-Architected), [`docs/system-design.md`](docs/system-design.md) (scale math, data model, bottlenecks), and IaC in [`terraform/`](terraform).
 
-- **Editor + API** (`app/`, `components/`) — Next.js 16 + React 19 with the Remotion Player. API routes hold all **AI calls server‑side** (keys/credentials never reach the browser) and read/write scenes and render history in DynamoDB.
-- **Data layer** (`app/lib/db.ts`) — a **DynamoDB single‑table design**: every user owns one item collection, holding both saved scenes and render‑history events, retrievable with single‑partition Queries (no Scans). A sparse GSI lists a user's scenes by recency. A read‑through cache (`app/lib/cache.ts`; DAX in production) fronts the hot list path.
-- **Object storage + CDN** — finished renders upload to **S3** (`server/lib/storage.mjs`) under `renders/<id>/` and are served via **CloudFront**. Env‑gated: unset `AWS_S3_BUCKET` and renders stay on local disk for dev.
-- **Render server** (`server/render-server.mjs`) — Express backend that renders MP4s with `@remotion/renderer`, then derives every aspect ratio and format (MP4/WebM/GIF) from one base render with ffmpeg.
-- **Observability** — the app and render server emit **CloudWatch EMF metrics** (`lib/metrics.ts`, `server/lib/metrics.mjs`): render latency, scene ops, AI latency, errors — with a Terraform dashboard + p90 alarm.
+- **Editor + API** (`app/`, `components/`) — Next.js 16 + React 19 with the Remotion Player. API routes run **server‑side only** (AWS credentials never reach the browser) and read/write scenes and render history in DynamoDB. Identity is a zero‑friction **anonymous device‑id** (`lib/auth.tsx`) that doubles as the DynamoDB partition key — no sign‑in required (Clerk is an optional layer).
+- **Data layer** (`app/lib/db.ts`) — a **DynamoDB single‑table design**: every user owns one item collection, holding both saved scenes and render‑history events, retrievable with single‑partition **paginated** Queries (no Scans). A sparse GSI lists a user's scenes by recency; render events carry a TTL. A read‑through cache (`app/lib/cache.ts`; DAX in production) fronts the hot list path.
+- **Serverless rendering** (`app/api/render-lambda/*`) — **MP4 rendering runs on AWS Lambda** via Remotion (`renderMediaOnLambda`): the API triggers a render, the client polls progress, and Lambda writes the finished MP4 to **S3**. Works on the deployed site with no local server. Env‑gated by `NEXT_PUBLIC_LAMBDA_RENDER`; see [`LAMBDA-SETUP.md`](LAMBDA-SETUP.md).
+- **Object storage** — uploaded background images offload to **S3** (`/api/upload`, `lib/server/storage.ts`); only the URL is stored in the DynamoDB item. Lambda render outputs also live in S3.
+- **Local render alternative** (`server/render-server.mjs`) — an Express backend that renders with `@remotion/renderer` + ffmpeg (multi‑ratio MP4/WebM/GIF) for local dev; the deployed app uses Lambda instead.
+- **Observability** — the app and render server emit **CloudWatch EMF metrics** (`lib/metrics.ts`, `server/lib/metrics.mjs`): render latency, scene ops, errors — with a Terraform dashboard + p90 alarm.
 - **Compositions** (`src/compositions/`) — the animated graphics (titles + the demo films), defined in React + [Remotion](https://www.remotion.dev) with Zod‑typed props.
 - **Pattern engine** (`src/lib/patterngen/`) — a deterministic, seeded generator that scatters shapes/squares/dots around the title, plus the flood‑grid intro (see [Attribution](#attribution)).
 
@@ -187,14 +185,14 @@ Both AI routes run on whichever provider `.env` selects — Gemini, Claude on Ve
 
 ---
 
-## Why render needs its own server
+## How rendering works (serverless)
 
-The editor, AI routes, and DynamoDB all run happily on **Vercel**. **MP4 rendering does not** — and can't. Remotion's renderer launches **headless Chromium + ffmpeg**, runs for tens of seconds, and writes files to disk: that exceeds the time, size, and filesystem limits of Vercel (and any "edge" runtime). So rendering lives in a separate long‑running process, `server/render-server.mjs`.
+The editor and DynamoDB run on **Vercel**, but **MP4 rendering can't** — Remotion's renderer launches **headless Chromium + ffmpeg**, runs for tens of seconds, and writes files to disk, which exceeds Vercel's function limits. So rendering runs on **AWS Lambda**.
 
-- **Local / demo:** run `npm run server` and use the app on the same machine — the editor calls the render server at `http://localhost:3001`.
-- **Production:** host the render server on a long‑running box (an **AWS EC2** instance, or the serverless **[Remotion Lambda](https://www.remotion.dev/docs/lambda)** → S3 path), then set `NEXT_PUBLIC_RENDER_SERVER` to its URL in Vercel and redeploy. The editor reads that env var (`components/editor/constants.ts`); everything else is unchanged.
+- **Production (live):** `POST /api/render-lambda` calls `renderMediaOnLambda()`; the editor polls `/api/render-lambda/progress` until done; Lambda writes the MP4 to **S3** and the browser plays the public URL. Works for anyone on the deployed site — no local server. Setup: [`LAMBDA-SETUP.md`](LAMBDA-SETUP.md). Toggle: `NEXT_PUBLIC_LAMBDA_RENDER=true`.
+- **Local dev:** run `npm run server` for a local Express renderer (`server/render-server.mjs`) that also derives multi‑ratio MP4/WebM/GIF via ffmpeg. The editor falls back to it when `NEXT_PUBLIC_LAMBDA_RENDER` is unset.
 
-Generate / edit / save all work on the deployed site today; only the final MP4 export needs the render server reachable.
+Generate / edit / save and **render** all work on the deployed site.
 
 ## Why DynamoDB
 

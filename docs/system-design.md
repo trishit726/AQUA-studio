@@ -129,26 +129,27 @@ Three layers, each with an explicit coherence story:
 
 ---
 
-## 6. The real bottleneck: the render pipeline
+## 6. Rendering: serverless on AWS Lambda (live)
 
 Rendering launches headless Chromium + ffmpeg, runs 10–60 s, and writes files —
 it **cannot** run in a Vercel function (time/FS limits) and must not block a
-request. Today it runs synchronously on a dedicated box
-([`server/render-server.mjs`](../server/render-server.mjs)) which uploads
-results to S3.
-
-**The scale path (designed in Terraform, not yet built):**
+request. So it runs on **AWS Lambda** via Remotion (`app/api/render-lambda/*`):
 
 ```
-API → SQS render queue → worker pool (ECS / Remotion Lambda) → S3 → log to DynamoDB
-                       ↘ DLQ after 3 attempts
+editor → /api/render-lambda → renderMediaOnLambda() → { renderId, bucketName }
+       → poll /api/render-lambda/progress → getRenderProgress() → outputUrl
+       → Lambda writes out.mp4 to S3 → browser plays it → /api/log-render → DynamoDB
 ```
 
-- The API enqueues a job and returns immediately; the client polls render
-  status or gets notified.
-- Workers **autoscale on queue depth**, so a burst of renders grows the fleet
-  instead of timing out.
-- Failed jobs retry, then land in a **DLQ** for inspection — no silent loss.
+- The trigger returns immediately; the editor polls progress and shows a `%`.
+- **Lambda auto-scales render concurrency** — a burst of renders is more
+  invocations, not a backed-up queue. Cost is cents per render.
+- Measured live: trigger → `0.18 → 1.0` → public `out.mp4` (~1.2 MB) in ~36 s.
+
+**Further scale path (provisioned in Terraform, flag-gated):** for very heavy
+sustained load, an **SQS queue + DLQ** (`terraform/queue.tf`) decouples the
+trigger from a worker pool with retry/dead-letter handling — switched on with
+`enable_render_queue` when traffic warrants.
 
 See `enable_render_queue` in [`terraform/queue.tf`](../terraform/queue.tf). This
 is the honest frontier: the queue + DLQ are real IaC; the worker consumer is the
@@ -200,9 +201,10 @@ next implementation step.
 ## 10. Scale path to millions (summary)
 
 1. **Now → 100k users:** current design. DynamoDB on-demand + in-process cache +
-   single render box. Nothing changes in the data tier.
-2. **Render burst:** flip on the SQS queue + an autoscaling worker pool. The data
-   tier is untouched.
+   **serverless Lambda rendering** (already auto-scales). Nothing changes in the
+   data tier.
+2. **Sustained render burst:** flip on the SQS queue + DLQ in front of the render
+   workers for backpressure/retries. The data tier is untouched.
 3. **Read-hot at the data tier:** wire DAX → microsecond cached reads, no app
    call-shape change.
 4. **Global / multi-region:** DynamoDB **Global Tables** for active-active

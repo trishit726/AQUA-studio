@@ -32,42 +32,39 @@ flowchart TB
     APP["Next.js 16 App + API routes<br/>editor UI · /api/* · Node runtime"]
   end
 
-  AUTH["Clerk Auth<br/>sign-in · JWT / session"]
-  AI["AI model<br/>Gemini / Claude — server-side only"]
+  ID["Identity<br/>anonymous device-id (localStorage)<br/>Clerk optional · → DynamoDB partition key"]
 
-  subgraph AWS["▸ AWS — data, media, render, observability"]
-    DAX["DAX cache<br/>microsecond cached reads"]
+  subgraph AWS["▸ AWS — data, render, media, observability"]
+    DAX["DAX cache<br/>(provisioned in Terraform)"]
     DDB[("DynamoDB<br/>single-table: scenes + render history")]
-    S3[("S3<br/>rendered MP4 / WebM / GIF")]
-    CF["CloudFront CDN<br/>global media delivery"]
-    SQS["SQS render queue<br/>async fan-out"]
-    RND["Render workers<br/>Remotion + ffmpeg · EC2/ECS/Lambda"]
+    LMB["Lambda — Remotion<br/>serverless MP4 render · LIVE"]
+    S3[("S3<br/>render output + image uploads")]
     CW["CloudWatch<br/>EMF metrics · logs · alarms · dashboard"]
   end
 
   U --> CDN --> APP
-  APP -->|verify session / JWT| AUTH
-  APP -->|read-through| DAX --> DDB
-  APP -->|/api/generate · /api/script| AI
-  APP -->|enqueue| SQS --> RND
-  APP -->|render now| RND
-  RND -->|upload| S3
-  RND -->|log render event| DDB
-  U -->|fetch finished render| CF --> S3
-  APP -.metrics + logs.-> CW
-  RND -.metrics + logs.-> CW
+  APP -->|userId = partition key| ID
+  APP -->|save · load · list · delete| DAX --> DDB
+  APP -->|trigger + poll · /api/render-lambda| LMB
+  LMB -->|writes finished MP4| S3
+  APP -->|log render event · /api/log-render| DDB
+  APP -->|image offload · /api/upload| S3
+  U -->|fetch finished MP4| S3
+  APP -.EMF metrics + logs.-> CW
+  LMB -.logs.-> CW
 
   classDef vercel fill:#161b26,stroke:#3b4760,color:#e8eaf0;
   classDef aws fill:#15212b,stroke:#2f6f8f,color:#e8eaf0;
   classDef ext fill:#1d1726,stroke:#6b4a8f,color:#e8eaf0;
   class CDN,APP vercel;
-  class DAX,DDB,S3,CF,SQS,RND,CW aws;
-  class AUTH,AI ext;
+  class DAX,DDB,LMB,S3,CW aws;
+  class ID ext;
     </pre>
     <p class="legend">
       <b>Primary database:</b> Amazon DynamoDB (single-table design — one item collection per user, sparse GSI for recency, no Scans).
+      &nbsp;·&nbsp; <b>Rendering:</b> AWS Lambda (Remotion) → S3, live on the deployed site.
       &nbsp;·&nbsp; <b>Solid arrows</b> = request path. &nbsp; <b>Dotted</b> = telemetry.
-      &nbsp;·&nbsp; DAX, SQS and CloudFront are provisioned in Terraform (flag-gated) as the documented scale path.
+      &nbsp;·&nbsp; DAX &amp; SQS are provisioned in Terraform (flag-gated) as the documented scale path.
     </p>
   </div>
 
