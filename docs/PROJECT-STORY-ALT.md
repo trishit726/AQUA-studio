@@ -48,6 +48,11 @@ It's a *system*, not a template pack. Same engine, completely different results:
   <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/diagram-dynamodb.png" width="800" alt="DynamoDB single-table design">
 </p>
 
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-dynamodb-items.png" width="900" alt="DynamoDB Explore items — live in the AWS console">
+</p>
+<p align="center"><i>The same table in the AWS console — real <code>USER#…</code> / <code>RENDER#…</code> rows. Not a diagram; the live data.</i></p>
+
 ### The stack
 
 Front end on **Vercel** (Next.js 16 · React 19 · Remotion preview). Back end on **AWS**: **DynamoDB** as the primary store, **Lambda** for serverless MP4 rendering (Chromium + ffmpeg can't run in a Vercel function), **S3** for the files, **CloudWatch** for metrics, **Terraform** for all of it.
@@ -55,6 +60,18 @@ Front end on **Vercel** (Next.js 16 · React 19 · Remotion preview). Back end o
 <p align="center">
   <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/architecture-diagram.png" width="880" alt="Aqua Studio system architecture">
 </p>
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-lambda-metrics.png" width="440" alt="Lambda render metrics in CloudWatch"></td>
+    <td align="center"><img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-s3-renders.png" width="440" alt="Rendered MP4s in S3"></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/trishit726/AQUA-studio@main/assets/aws-cloudwatch-dashboard.png" width="900" alt="CloudWatch dashboard — live render and DynamoDB metrics">
+</p>
+<p align="center"><i>Live on AWS: Lambda renders (71 invocations, 0 errors), MP4 outputs in S3, and a CloudWatch dashboard tracking render latency + DynamoDB capacity.</i></p>
 
 ### What made it real
 
