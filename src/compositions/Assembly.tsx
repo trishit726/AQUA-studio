@@ -30,7 +30,7 @@ export const assemblySchema = z.object({
   music: z.string(), // optional path in public/ for a lo-fi bed, e.g. "sfx/track.mp3"
 });
 export type AssemblyProps = z.infer<typeof assemblySchema>;
-export const assemblyDefaults: AssemblyProps = { name: "PATTERN STUDIO", site: "patternstudio.app", music: "" };
+export const assemblyDefaults: AssemblyProps = { name: "AQUA STUDIO", site: "aquastudio.app", music: "" };
 
 // Local CC0 SFX (public/sfx/) timed to the visual hits. Global frames account
 // for the 15-frame transition overlaps between sequences.

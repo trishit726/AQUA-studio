@@ -38,6 +38,14 @@ export interface CloudScene {
   updatedAt: string
 }
 
+export interface RenderItem {
+  id: string
+  composition: string
+  durationSec: number
+  status: string
+  createdAt: number
+}
+
 interface EditorContextValue {
   // auth
   isSignedIn: boolean
@@ -137,6 +145,8 @@ interface EditorContextValue {
   writeScript: () => Promise<void>
   // cloud
   cloudScenes: CloudScene[]
+  renders: RenderItem[]
+  fetchRenders: () => Promise<void>
   cloudLoading: boolean
   cloudError: string
   cloudSaveName: string
@@ -162,6 +172,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { isSignedIn, userId, userName, AuthUI } = useAppAuth()
 
   const [cloudScenes, setCloudScenes] = useState<CloudScene[]>([])
+  const [renders, setRenders] = useState<RenderItem[]>([])
   const [cloudLoading, setCloudLoading] = useState(false)
   const [cloudError, setCloudError] = useState("")
   const [cloudSaveName, setCloudSaveName] = useState("")
@@ -430,6 +441,20 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }
 
+  // Render history — the RENDER# items in this user's DynamoDB partition,
+  // newest first (paginated endpoint; we show the first page).
+  const fetchRenders = async () => {
+    if (!userId) return
+    try {
+      const res = await fetch(`/api/renders?userId=${encodeURIComponent(userId)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      setRenders(Array.isArray(data) ? data : (data.items ?? []))
+    } catch (e) {
+      console.error("[v0] renders list error", e)
+    }
+  }
+
   const saveSceneToCloud = async (name: string) => {
     if (!userId) {
       // Anonymous id is still initializing (first tick) — no sign-in required.
@@ -521,8 +546,13 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   useEffect(() => {
-    if (isSignedIn && userId) fetchCloudScenes()
-    else setCloudScenes([])
+    if (isSignedIn && userId) {
+      fetchCloudScenes()
+      fetchRenders()
+    } else {
+      setCloudScenes([])
+      setRenders([])
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn, userId])
 
@@ -692,7 +722,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             ),
             status: "success",
           }),
-        }).catch((err) => console.error("[v0] log-render error", err))
+        })
+          .then(() => fetchRenders())
+          .catch((err) => console.error("[v0] log-render error", err))
       }
     } catch (e) {
       setStatus("Error — is the render server up? (npm run server)")
@@ -805,6 +837,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     scriptBusy,
     writeScript,
     cloudScenes,
+    renders,
+    fetchRenders,
     cloudLoading,
     cloudError,
     saveCurrent,

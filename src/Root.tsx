@@ -79,7 +79,7 @@ export const RemotionRoot: React.FC = () => {
         height={CANVAS.height}
         schema={assemblySchema}
         defaultProps={{
-          name: "PATTERN STUDIO",
+          name: "AQUA STUDIO",
           site: "yourname.com",
           music: "",
         }}

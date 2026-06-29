@@ -69,7 +69,7 @@ export const editorialDefaults: EditorialProps = {
   motif: "eye",
   headline: "WAYS\nOF SEEING",
   tagline: "An editorial system that watches the page back — one style, many issues.",
-  ringText: "PATTERN STUDIO · EDITORIAL SYSTEM · ",
+  ringText: "AQUA STUDIO · EDITORIAL SYSTEM · ",
   cornerLeft: "01",
   cornerRight: "26",
   logoText: "STUDIO",

@@ -7,6 +7,7 @@ import {
   FileVideo,
   FilmIcon,
   Grid2x2,
+  History,
   LayoutTemplate,
   Layers,
   Plus,
@@ -48,6 +49,8 @@ export function LeftPanel() {
     loadSceneFromCloud,
     deleteSceneFromCloud,
     fetchCloudScenes,
+    renders,
+    fetchRenders,
   } = useEditor()
 
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
@@ -243,6 +246,71 @@ export function LeftPanel() {
               {cloudScenes.length} {cloudScenes.length === 1 ? "scene" : "scenes"} synced
             </Badge>
           </>
+        )}
+      </div>
+
+      {/* Render history — the RENDER# items in this user's DynamoDB partition */}
+      <div className="mx-3 mb-3 shrink-0 rounded-xl border border-border p-3">
+        <div className="flex items-center justify-between px-1 pb-2">
+          <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <History className="size-3.5" />
+            Render History
+          </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6"
+            onClick={fetchRenders}
+            aria-label="Refresh render history"
+          >
+            <RefreshCw className="size-3.5" />
+          </Button>
+        </div>
+
+        {renders.length === 0 ? (
+          <p className="px-1 py-3 text-center text-xs text-muted-foreground text-pretty">
+            No renders yet — hit Render MP4 to log one to DynamoDB.
+          </p>
+        ) : (
+          <ScrollArea className="max-h-44">
+            <ul className="flex flex-col gap-0.5 pr-1">
+              {renders.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary"
+                >
+                  <FileVideo
+                    className={cn(
+                      "size-3.5 shrink-0",
+                      r.status === "success" ? "text-aqua" : "text-destructive",
+                    )}
+                  />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-xs font-medium leading-tight">
+                      {r.composition}
+                    </span>
+                    <span className="truncate text-[10px] text-muted-foreground">
+                      {r.durationSec}s ·{" "}
+                      {new Date(r.createdAt).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </span>
+                  <span
+                    className={cn(
+                      "shrink-0 text-[9px] uppercase tracking-wide",
+                      r.status === "success" ? "text-aqua" : "text-destructive",
+                    )}
+                  >
+                    {r.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
         )}
       </div>
     </aside>

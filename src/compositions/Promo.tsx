@@ -69,7 +69,7 @@ const EndCard: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#e0573a", justifyContent: "center", alignItems: "center", gap: 20 }}>
       <div style={{ clipPath: `inset(0 ${(1 - a) * 100}% 0 0)` }}>
-        <span style={{ fontFamily: ANTON, fontSize: 120, color: "#111", textTransform: "uppercase", letterSpacing: 1 }}>PATTERN STUDIO</span>
+        <span style={{ fontFamily: ANTON, fontSize: 120, color: "#111", textTransform: "uppercase", letterSpacing: 1 }}>AQUA STUDIO</span>
       </div>
       <div style={{ opacity: b }}>
         <span style={{ fontFamily: ANTON, fontSize: 32, color: "#fff", background: "#111", padding: "6px 18px 9px", letterSpacing: 2 }}>OPEN SOURCE · MADE FOR EVERYONE</span>

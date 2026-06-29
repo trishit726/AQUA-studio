@@ -24,9 +24,8 @@ export async function POST(req: Request) {
       durationSec: Number(durationSec),
       status,
     })
-    metric(status === "completed" ? "RenderCompleted" : "RenderFailed", 1, "Count", {
-      composition,
-    })
+    const ok = status === "completed" || status === "success"
+    metric(ok ? "RenderCompleted" : "RenderFailed", 1, "Count", { composition })
     return NextResponse.json({ success: true, event })
   } catch (error: any) {
     metric("Errors", 1, "Count", { op: "recordRender" })

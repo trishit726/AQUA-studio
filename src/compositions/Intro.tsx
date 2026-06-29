@@ -54,7 +54,7 @@ export const introDefaults: IntroProps = {
   bgImage: "images/images.jpeg", // entrance shot (lantern alley)
   bgImage2: "images/49488134237_6646d2f9d0_b.jpg", // deeper alley shot (people receding)
   paint: 70,
-  title: "PATTERN STUDIO",
+  title: "AQUA STUDIO",
   byline: "MOTION GRAPHICS, FROM A PROMPT",
   jp: "",
   eyesX: 0.5,
