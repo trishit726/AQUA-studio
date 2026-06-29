@@ -143,6 +143,7 @@ interface EditorContextValue {
   setCloudSaveName: React.Dispatch<React.SetStateAction<string>>
   fetchCloudScenes: () => Promise<void>
   saveSceneToCloud: (name: string) => Promise<void>
+  saveCurrent: () => Promise<void>
   loadSceneFromCloud: (item: CloudScene) => void
   deleteSceneFromCloud: (id: string) => Promise<void>
   // presets
@@ -164,6 +165,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [cloudLoading, setCloudLoading] = useState(false)
   const [cloudError, setCloudError] = useState("")
   const [cloudSaveName, setCloudSaveName] = useState("")
+  // The scene currently open in the editor, once it's been saved to the cloud.
+  // Re-saving updates this same item (upsert) instead of creating duplicates.
+  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null)
 
   const [comp, setComp] = useState<CompId>("PatternTitle")
   const [props, setProps] = useState<PatternTitleProps>(patternTitleDefaults)
@@ -455,12 +459,44 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }
 
+  // One-click cloud save of the scene you're working on (→ DynamoDB). Derives a
+  // name from the title, needs no sign-in, and upserts (re-saving updates the
+  // same item rather than spawning duplicates).
+  const saveCurrent = async () => {
+    if (!userId) {
+      toast.error("Just a moment — initializing your library…")
+      return
+    }
+    const block = props.titles?.find((t) => t.kind === "block") ?? props.titles?.[0]
+    const name = ((block?.text ?? "").replace(/\s+/g, " ").trim() || "Untitled scene").slice(0, 40)
+    const id = currentSceneId ?? `scene-${Date.now()}`
+    setCloudLoading(true)
+    try {
+      const res = await fetch("/api/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, userId, name, props, duration }),
+      })
+      if (!res.ok) throw new Error(await res.text())
+      setCurrentSceneId(id)
+      toast.success(`Saved "${name}" to your cloud library.`)
+      fetchCloudScenes()
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error"
+      console.error("[v0] cloud save error", e)
+      toast.error(`Save failed: ${msg}`)
+    } finally {
+      setCloudLoading(false)
+    }
+  }
+
   const loadSceneFromCloud = (item: CloudScene) => {
     if (!item.props) return
     setProps(item.props)
     if (item.duration) setDuration(item.duration)
     setSelectedId(item.props.titles?.[0]?.id ?? "")
     setComp("PatternTitle")
+    setCurrentSceneId(item.id) // re-saving now updates this loaded scene
     toast.success(`Loaded "${item.name}".`)
   }
 
@@ -771,6 +807,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     cloudScenes,
     cloudLoading,
     cloudError,
+    saveCurrent,
     cloudSaveName,
     setCloudSaveName,
     fetchCloudScenes,

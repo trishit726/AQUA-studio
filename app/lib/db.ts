@@ -68,7 +68,7 @@ export const db = DynamoDBDocumentClient.from(client, {
 
 /** Single table holding every entity type (scenes + render history). */
 export const TABLE_NAME =
-  process.env.AWS_DYNAMODB_TABLE_NAME?.trim() || "pattern-studio"
+  process.env.AWS_DYNAMODB_TABLE_NAME?.trim() || "pattern-studio-scenes"
 
 /** Name of the sparse recency index over a user's scenes. */
 export const SCENES_BY_RECENCY_INDEX = "GSI1"

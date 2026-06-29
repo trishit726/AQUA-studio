@@ -19,7 +19,7 @@ import {
 const region = (process.env.AWS_REGION || "us-east-1").trim();
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID?.trim();
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY?.trim();
-const TableName = (process.env.AWS_DYNAMODB_TABLE_NAME || "pattern-studio").trim();
+const TableName = (process.env.AWS_DYNAMODB_TABLE_NAME || "pattern-studio-scenes").trim();
 
 if (!accessKeyId || !secretAccessKey) {
   console.error(

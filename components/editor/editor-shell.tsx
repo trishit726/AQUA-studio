@@ -64,7 +64,7 @@ function Toolbar() {
       <Separator orientation="vertical" className="mx-1 h-6" />
 
       <div className="flex items-center gap-1.5">
-        <PillButton variant="glass" size="sm" className="gap-1.5" onClick={e.save}>
+        <PillButton variant="glass" size="sm" className="gap-1.5" onClick={e.saveCurrent} disabled={e.cloudLoading}>
           <Save className="size-4" />
           Save
         </PillButton>
